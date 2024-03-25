@@ -1,9 +1,12 @@
+import { container } from 'tsyringe'
 import { APIGatewayProxyEventV2 } from "aws-lambda";
-import { UserService } from "app/service/userService";
+import { UserService } from "../service/userService";
+import { ErrorResponse } from "../utility/response";
 
-const service = new UserService()
+const service = container.resolve(UserService);
 
 export const Signup = async (event: APIGatewayProxyEventV2) => {
+    console.log("signup....")
     return await service.CreateUser(event);
 }
 
@@ -16,35 +19,46 @@ export const Verify = async (event: APIGatewayProxyEventV2) => {
 }
 
 export const Profile = async (event: APIGatewayProxyEventV2) => {
-    return await service.CreateUser(event);
+    const httpMethod = event.requestContext.http.method.toLowerCase();
+    if(httpMethod === 'post') {
+        return service.CreateProfile(event)
+    }
+    else if(httpMethod === 'put') {
+        return service.EditProfile(event);
+    }
+    else if(httpMethod === 'get') {
+        return service.GetProfile(event);
+    }
+
+    return ErrorResponse(404, "required method not found");
 }
 
 export const Cart = async (event: APIGatewayProxyEventV2) => {
-    console.log(event);
-
-    return {
-        statusCode: 200,
-        headers: {
-            "Access-Control-Allow-Origin": "*"
-        },
-        body: JSON.stringify({
-            message: "res from signup",
-            data: {}
-        })
+    const httpMethod = event.requestContext.http.method.toLowerCase();
+    if(httpMethod === 'post') {
+        return service.CreateCart(event)
     }
+    else if(httpMethod === 'put') {
+        return service.UpdateCart(event);
+    }
+    else if(httpMethod === 'get') {
+        return service.GetCart(event);
+    }
+
+    return ErrorResponse(404, "required method not found");
 }
 
 export const Payment = async (event: APIGatewayProxyEventV2) => {
-    console.log(event);
-
-    return {
-        statusCode: 200,
-        headers: {
-            "Access-Control-Allow-Origin": "*"
-        },
-        body: JSON.stringify({
-            message: "res from signup",
-            data: {}
-        })
+    const httpMethod = event.requestContext.http.method.toLowerCase();
+    if(httpMethod === 'post') {
+        return service.CreatePaymentMethod(event)
     }
+    else if(httpMethod === 'put') {
+        return service.UpdatePaymentMethod(event);
+    }
+    else if(httpMethod === 'get') {
+        return service.GetPaymentMethod(event);
+    }
+
+    return ErrorResponse(404, "required method not found");
 }

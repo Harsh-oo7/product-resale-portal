@@ -15,6 +15,12 @@ $ npm install -g typescript
 
 ```
 
+To config AWS CLI type,
+
+```
+aws config
+```
+
 ### Plugins Required
 
 ```
@@ -42,3 +48,6 @@ To learn more about the capabilities of `serverless-offline`, please refer to it
 $ sls deploy --verbose
 
 ```
+
+### Some refs:
+1. Why dependency injection? https://www.youtube.com/watch?v=D1kM5W9r85Q
