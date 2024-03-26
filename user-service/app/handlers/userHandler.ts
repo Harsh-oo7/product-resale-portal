@@ -15,7 +15,15 @@ export const Login = async (event: APIGatewayProxyEventV2) => {
 }
 
 export const Verify = async (event: APIGatewayProxyEventV2) => {
-    return await service.VerifyUser(event);
+    const httpMethod = event.requestContext.http.method.toLowerCase();
+    if(httpMethod === 'post') {
+        return await service.VerifyUser(event);
+    }
+    else if(httpMethod === 'get') {
+        return await service.GetVerificationToken(event);
+    }
+
+    return ErrorResponse(404, "required method not found");
 }
 
 export const Profile = async (event: APIGatewayProxyEventV2) => {

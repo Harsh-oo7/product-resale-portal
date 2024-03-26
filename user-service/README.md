@@ -51,3 +51,5 @@ $ sls deploy --verbose
 
 ### Some refs:
 1. Why dependency injection? https://www.youtube.com/watch?v=D1kM5W9r85Q
+2. What is Makefile? https://dev.to/alexmercedcoder/what-is-a-makefile-and-how-do-i-use-them-3ncp
+3. https://stackoverflow.com/questions/2145590/what-is-the-purpose-of-phony-in-a-makefile
