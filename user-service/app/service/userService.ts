@@ -17,6 +17,8 @@ import {
   GenerateAccessCode,
   SendVerificationCode,
 } from "../utility/notification";
+import { VerificationInput } from "../models/dto/UpdateInput";
+import { TimeDifference } from "../utility/dateHelper";
 @autoInjectable()
 export class UserService {
   repository: UserRepository;
@@ -79,7 +81,11 @@ export class UserService {
     const payload = await VerifyToken(token as string);
     if (payload) {
       const { code, expiry } = GenerateAccessCode();
-
+      await this.repository.updateVerificationCode(
+        payload.user_id as string,
+        code,
+        expiry
+      );
       const response = await SendVerificationCode(code, payload.phone);
       return SuccessResponse({ message: "Verification Code sent." });
     }
@@ -87,7 +93,30 @@ export class UserService {
   }
 
   async VerifyUser(event: APIGatewayProxyEventV2) {
-    return SuccessResponse({ message: "User created successfully" });
+    const body = JSON.parse(event.body as string);
+    const token = event.headers.authorization;
+    const payload = await VerifyToken(token as string);
+    if (!payload) return ErrorResponse(500, "Some internal server error.");
+
+    const input = plainToClass(VerificationInput, body);
+    const error = await AppValidationError(input);
+    if (error) return ErrorResponse(404, error);
+
+    const { verification_code, expiry } = await this.repository.findAccount(
+      payload.email
+    );
+
+    if (verification_code == parseInt(input.code)) {
+      const currentTime = new Date();
+      const diff = TimeDifference(expiry, currentTime.toISOString(), "m");
+      if (diff > 0) {
+        await this.repository.updateVerifyUser(payload.user_id as string);
+      } else {
+        return ErrorResponse(404, "Verification code is expired");
+      }
+    }
+
+    return SuccessResponse({ message: "User verified successfully" });
   }
 
   // User Profile

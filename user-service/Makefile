@@ -10,6 +10,9 @@ server:
 migrate:
 	db-migrate up
 
+create_migration:
+	db-migrate create $(n) --sql-file
+
 migrate-down:
 	db-migrate down
 
