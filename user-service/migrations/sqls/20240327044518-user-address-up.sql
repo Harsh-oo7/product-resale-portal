@@ -8,11 +8,11 @@ CREATE TABLE "address" (
     "city" varchar,
     "post_code" integer,
     "country" varchar,
-    "created_at" timestampz NOT NULL DEFAULT (now())
+    "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
-CREATE INDEX ON "address" ("city")
-CREATE INDEX ON "address" ("post_code")
-CREATE INDEX ON "address" ("country")
+CREATE INDEX ON "address" ("city");
+CREATE INDEX ON "address" ("post_code");
+CREATE INDEX ON "address" ("country");
 
 ALTER TABLE "address" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("user_id");

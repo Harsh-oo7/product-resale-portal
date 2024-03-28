@@ -19,6 +19,7 @@ import {
 } from "../utility/notification";
 import { VerificationInput } from "../models/dto/UpdateInput";
 import { TimeDifference } from "../utility/dateHelper";
+import { ProfileInput } from "../models/dto/AddressInput";
 @autoInjectable()
 export class UserService {
   repository: UserRepository;
@@ -82,7 +83,7 @@ export class UserService {
     if (payload) {
       const { code, expiry } = GenerateAccessCode();
       await this.repository.updateVerificationCode(
-        payload.user_id as string,
+        payload.user_id as number,
         code,
         expiry
       );
@@ -110,7 +111,7 @@ export class UserService {
       const currentTime = new Date();
       const diff = TimeDifference(expiry, currentTime.toISOString(), "m");
       if (diff > 0) {
-        await this.repository.updateVerifyUser(payload.user_id as string);
+        await this.repository.updateVerifyUser(payload.user_id as number);
       } else {
         return ErrorResponse(404, "Verification code is expired");
       }
@@ -121,15 +122,55 @@ export class UserService {
 
   // User Profile
   async CreateProfile(event: APIGatewayProxyEventV2) {
-    return SuccessResponse({ message: "User created successfully" });
+    const body = JSON.parse(event.body as string);
+
+    const token = event.headers.authorization;
+    const payload = await VerifyToken(token as string);
+    if (!payload) return ErrorResponse(500, "Some internal server error.");
+
+    const input = plainToClass(ProfileInput, body);
+    const error = await AppValidationError(input);
+    if (error) return ErrorResponse(404, error);
+
+    const result = await this.repository.createProfile(
+      payload.user_id as number,
+      input
+    );
+
+    return SuccessResponse({
+      result,
+      message: "User Profile created successfully",
+    });
   }
 
   async GetProfile(event: APIGatewayProxyEventV2) {
-    return SuccessResponse({ message: "User created successfully" });
+    const token = event.headers.authorization;
+    const payload = await VerifyToken(token as string);
+    if (!payload) return ErrorResponse(500, "Some internal server error.");
+
+    const result = await this.repository.getUserProfile(
+      payload.user_id as number
+    );
+    return SuccessResponse(result);
   }
 
   async EditProfile(event: APIGatewayProxyEventV2) {
-    return SuccessResponse({ message: "User created successfully" });
+    const body = JSON.parse(event.body as string);
+
+    const token = event.headers.authorization;
+    const payload = await VerifyToken(token as string);
+    if (!payload) return ErrorResponse(500, "Some internal server error.");
+
+    const input = plainToClass(ProfileInput, body);
+    const error = await AppValidationError(input);
+    if (error) return ErrorResponse(404, error);
+
+    const result = await this.repository.editProfile(
+      payload.user_id as number,
+      input
+    );
+
+    return SuccessResponse({ message: "User profile updated successfully" });
   }
 
   // cart
